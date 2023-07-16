@@ -1,0 +1,10 @@
+{
+  "Name": "Dialogue Logger",
+  "Author": "JareBear",
+  "Version": "1.0.0",
+  "Description": "Adds a Log feature to the game, allowing the player to view dialogue they may have missed.",
+  "UniqueID": "JareBear.DialogueLogger",
+  "EntryDll": "DialogueLogger.dll",
+  "MinimumApiVersion": "3.0.0",
+  "UpdateKeys": []
+}
