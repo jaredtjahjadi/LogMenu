@@ -19,7 +19,9 @@ namespace DialogueLogger
         ** Properties
         *********/
         private DialogueQueue<Tuple<string, string, string>> dialogueList; // The log of dialogue lines. Tuple is <name, emotion, dialogue line>
+        private Dictionary<Tuple<string, string, string>, Boolean> dialogueInList;
         private ModConfig Config; // The mod configuration from the player
+        private Tuple<string, string, string> prevDiag;
 
         /*********
         ** Public methods
@@ -65,7 +67,7 @@ namespace DialogueLogger
                     dialogue.Replace("^", Environment.NewLine);
                     if (!string.IsNullOrEmpty(dialogue) && !dialogueList.Any(item => item.Item3 == dialogue))
                     {
-                        this.Monitor.Log(dialogue, LogLevel.Debug);
+                        this.Monitor.Log($"{dialogue}" + (resps.Length > 0 ? $" {resps}" : ""), LogLevel.Debug);
                         addToDialogueList(null, null, dialogue);
                     }
                 }
@@ -81,11 +83,30 @@ namespace DialogueLogger
                     else if (emotion == "$l") emotion = "Love";
                     else if (emotion == "$a") emotion = "Angry";
                     else emotion = "Unique";
+
+                    // TODO: Fix issue in which repeated same-box dialogue lines will not repeat being logged
                     // Debug string format: "[DialogueLogger] <NPC name> (<emotion>): <dialogue line> <responses>"
-                    if (!string.IsNullOrEmpty(currCharDiag) && !dialogueList.Any(item => item.Item3 == currCharDiag) && db.dialogueContinuedOnNextPage && charDiag.currentDialogueIndex != 0)
+                    // Deals with the case that dialogue continues in the same dialogue box
+                    if (!string.IsNullOrEmpty(currCharDiag) && db.dialogueContinuedOnNextPage)
                     {
-                        this.Monitor.LogOnce($"{charDiag.speaker.Name}" + ((emotion == "" ? "" : $" ({emotion})") + $": {currCharDiag}") + resps, LogLevel.Debug);
-                        addToDialogueList(charDiag.speaker.Name, emotion, currCharDiag);
+                        // If the specific dialogue line is not already in the dialogue list
+                        if (!dialogueList.Any(item => item.Item3 == currCharDiag))
+                        {
+                            if (charDiag.currentDialogueIndex != 0)
+                            {
+                                this.Monitor.LogOnce($"{charDiag.speaker.Name}" + ((emotion == "" ? "" : $" ({emotion})") + $": {currCharDiag}") + resps, LogLevel.Debug);
+                                addToDialogueList(charDiag.speaker.Name, emotion, currCharDiag);
+                                prevDiag = new Tuple<string, string, string>(charDiag.speaker.Name, emotion, currCharDiag);
+                            }
+                        }
+                        else
+                        {
+                            if (dialogueList.indexOf(prevDiag) != dialogueList.Count - 1 && dialogueList.indexOf(prevDiag) != -1 && charDiag.currentDialogueIndex != 0)
+                            {
+                                addToDialogueList(charDiag.speaker.Name, emotion, currCharDiag);
+                                this.Monitor.LogOnce($"Index of {currCharDiag}: {dialogueList.indexOf(prevDiag)}", LogLevel.Debug);
+                            }
+                        }
                     }
                 }
             }
@@ -133,7 +154,7 @@ namespace DialogueLogger
                     dialogue.Replace("^", Environment.NewLine);
                     if (!string.IsNullOrEmpty(dialogue) && !dialogueList.Any(item => item.Item3 == dialogue))
                     {
-                        this.Monitor.Log(dialogue, LogLevel.Debug);
+                        this.Monitor.Log($"{dialogue}" + (resps.Length > 0 ? $" {resps}" : ""), LogLevel.Debug);
                         addToDialogueList(null, null, dialogue);
                     }
                 }

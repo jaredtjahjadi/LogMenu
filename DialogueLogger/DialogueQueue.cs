@@ -30,6 +30,12 @@ namespace DialogueLogger
             return queue.Dequeue();
         }
 
+        public int indexOf(T item)
+        {
+            if (!queue.Contains(item)) return -1; // If the item is not in the queue, return -1
+            else return queue.ToArray().ToList().IndexOf(item);
+        }
+
         public IEnumerator<T> GetEnumerator()
         {
             return queue.GetEnumerator();
