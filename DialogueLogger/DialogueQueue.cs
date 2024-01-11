@@ -9,7 +9,7 @@ namespace DialogueLogger
 {
     public class DialogueQueue<T> : IEnumerable<T>
     {
-        private readonly int maxSize;
+        private readonly int maxSize; // Configurable in ModConfig.js
         private readonly Queue<T> queue;
 
         public DialogueQueue(int maxSize)
@@ -21,7 +21,7 @@ namespace DialogueLogger
 
         public void enqueue(T item)
         {
-            if (queue.Count >= maxSize) queue.Dequeue();
+            if (queue.Count >= maxSize) queue.Dequeue(); // Queue has a max size - if exceeded, remove first element from queue
             queue.Enqueue(item);
         }
 
@@ -33,19 +33,13 @@ namespace DialogueLogger
         public int indexOf(T item)
         {
             if (!queue.Contains(item)) return -1; // If the item is not in the queue, return -1
-            else return queue.ToArray().ToList().IndexOf(item);
+            else return queue.ToArray().ToList().IndexOf(item); // Queue -> Array -> List -> returns index of item in list. ....yeah
         }
 
-        public IEnumerator<T> GetEnumerator()
-        {
-            return queue.GetEnumerator();
-        }
+        // Makes this class iterable
+        public IEnumerator<T> GetEnumerator() { return queue.GetEnumerator(); }
+        IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-
-        public int Count { get { return queue.Count; } }
+        public int Count { get { return queue.Count; } } // Length of queue
     }
 }
