@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 
 namespace DialogueLogger
 {
-    public class DialogueQueue<T> : IEnumerable<T>
+    // Wrapper class for queue - the difference is the queue has a max amount of elements
+    public class DialogueQueue<T> : Queue<T>, IEnumerable<T>
     {
         private readonly int maxSize; // Configurable in ModConfig.js
         private readonly Queue<T> queue;
@@ -24,22 +25,8 @@ namespace DialogueLogger
             if (queue.Count >= maxSize) queue.Dequeue(); // Queue has a max size - if exceeded, remove first element from queue
             queue.Enqueue(item);
         }
-
-        public T dequeue()
-        {
-            return queue.Dequeue();
-        }
-
-        public int indexOf(T item)
-        {
-            if (!queue.Contains(item)) return -1; // If the item is not in the queue, return -1
-            else return queue.ToArray().ToList().IndexOf(item); // Queue -> Array -> List -> returns index of item in list. ....yeah
-        }
-
         // Makes this class iterable
-        public IEnumerator<T> GetEnumerator() { return queue.GetEnumerator(); }
+        public new IEnumerator<T> GetEnumerator() { return queue.GetEnumerator(); }
         IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
-
-        public int Count { get { return queue.Count; } } // Length of queue
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
@@ -18,12 +19,12 @@ namespace DialogueLogger
         /*********
         ** Properties
         *********/
-        private DialogueQueue<Tuple<string, string, string, List<string>>> dialogueList; // The log of dialogue lines. Tuple is <name, emotion, dialogue line>
-        // private Dictionary<Tuple<string, string, string>, Boolean> dialogueInList;
+        // The log of dialogue lines. Tuple is <name, emotion, dialogue line, responses>
+        private DialogueQueue<DialogueElement> dialogueList;
         private ModConfig Config; // The mod configuration from the player
-        private string prevLoggedDialogue;
-        private string prevAddedDialogue;
         private List<string> responses;
+        private string prevAddedDialogue;
+        private IClickableMenu prevMenu;
 
         /*********
         ** Public methods
@@ -33,11 +34,11 @@ namespace DialogueLogger
         public override void Entry(IModHelper helper)
         {
             this.Config = this.Helper.ReadConfig<ModConfig>();
-            dialogueList = new DialogueQueue<Tuple<string, string, string, List<string>>>(this.Config.LogLimit);
+            dialogueList = new(Config.LogLimit);
             helper.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
             helper.Events.GameLoop.UpdateTicked += this.OnUpdateTicked;
             helper.Events.Input.ButtonPressed += this.OnButtonPressed;
-            //helper.Events.Display.MenuChanged += this.OnMenuChanged;
+            helper.Events.Display.MenuChanged += this.OnMenuChanged;
         }
 
         /*********
@@ -46,10 +47,11 @@ namespace DialogueLogger
         /// <summary>When loading a save, the dialogue queue is replaced with an empty one.</summary>
         /// <param name="sender">The event sender.</param>
         /// <param name="e">The event arguments.</param>
-        private void OnSaveLoaded(object sender, SaveLoadedEventArgs e)
-        {
-            dialogueList = new DialogueQueue<Tuple<string, string, string, List<string>>>(this.Config.LogLimit);
-        }
+        private void OnSaveLoaded(object sender, SaveLoadedEventArgs e) { dialogueList = new(Config.LogLimit); }
+
+        // Handles repeatable dialogue (e.g., repeatedly interacting with objects, some NPC lines, some event lines)
+        // by resetting prevAddedDialogue to null
+        private void OnMenuChanged(object sender, MenuChangedEventArgs e) { if(e.NewMenu == null) prevAddedDialogue = null; }
 
         /// <summary>The method invoked when the game updates its state.</summary>
         /// <param name="sender">The event sender.</param>
@@ -61,38 +63,21 @@ namespace DialogueLogger
             // If the currently open menu is a dialogue box
             if (Game1.activeClickableMenu is DialogueBox db)
             {
-                // In multi-part dialogues, the transitioningBigger check makes sure that incoming dialogue doesn't get logged too early
-                if (prevLoggedDialogue != db.getCurrentString() && db.transitioningBigger)
-                {
-                    this.Monitor.Log(db.getCurrentString(), LogLevel.Debug);
-                    this.prevLoggedDialogue = db.getCurrentString();
-                }
-
                 // Dialogue boxes with questions
                 responses = new();
                 if (db.isQuestion)
                 {
-                    // Add each response to responses list variable
+                    // Converts each response from Response to string, then adds it to responses list variable
                     for (int i = 0; i < db.responses.Count; i++) responses.Add(db.responses[i].responseText);
-                    // TODO: Get player's response to question
+                    // TODO: Check player's response to question
+                    //this.Monitor.Log($"{responseInd}", LogLevel.Debug);
                 }
-
-                // NPC information (character name / emotion)
-                Dialogue charDiag = db.characterDialogue;
-                string charName = null;
-                string charEmotion = null;
-                if(charDiag is not null)
-                {
-                    charName = charDiag.speaker.Name;
-                    charEmotion = charDiag.CurrentEmotion;
-                }
-
-                // TODO: Add repeatable dialogue to log (e.g., interacting with objects, most of Gus's lines)
 
                 // Adding dialogue to log
-                if(prevAddedDialogue != db.getCurrentString() && db.transitioningBigger)
+                // In multi-part dialogues, the transitioningBigger check makes sure that incoming dialogue doesn't get logged too early
+                if (prevAddedDialogue != db.getCurrentString() && db.transitioningBigger)
                 {
-                    addToDialogueList(charName, charEmotion, db.getCurrentString(), responses);
+                    AddToDialogueList(db.characterDialogue, db.getCurrentString(), responses);
                     prevAddedDialogue = db.getCurrentString();
                 }
             }
@@ -109,23 +94,47 @@ namespace DialogueLogger
             // Upon pressing the Log button
             if (e.Button == this.Config.LogButton)
             {
-                this.Monitor.Log($"Log button {e.Button} has been pressed.", LogLevel.Debug);
-                // Iterates through each line of dialogue in the dialouge list
-                foreach(Tuple<string, string, string, List<string>> dialogue in dialogueList)
+                // Only open log menu when game is not paused
+                if ((Game1.activeClickableMenu == null || Game1.IsMultiplayer) && !Game1.paused)
                 {
-                    // Displays the previous X lines of dialogue in the SMAPI console (later will be replaced so that the dialogue lines display in-game)
-                    if (dialogue.Item1 is null) // Non-NPCs
-                        this.Monitor.Log($"{dialogue.Item3} {(dialogue.Item4.Count > 0 ? "- " + string.Join(',', dialogue.Item4) : "")}", LogLevel.Info);
-                    else // NPCs
-                        this.Monitor.Log($"{dialogue.Item1} ({dialogue.Item2}): {dialogue.Item3} {(dialogue.Item4.Count > 0 ? "- " + string.Join(',', dialogue.Item4) : "")}", LogLevel.Info);
+                    prevMenu = Game1.activeClickableMenu;
+                    // Set activeClickableMenu to LogMenu, passing the dialogue list
+                    Game1.activeClickableMenu = new LogMenu(this.dialogueList);
+                    Game1.playSound("bigSelect"); // Play "bloop bleep" sound upon opening menu
+                }
+                else if(Game1.activeClickableMenu is LogMenu)
+                {
+                    Game1.activeClickableMenu = prevMenu is DialogueBox ? prevMenu : null;
+                    Game1.playSound("bigDeSelect"); // Play "bleep bloop" sound upon closing menu
                 }
             }
+
+            // Check response to an in-game dialogue question upon button click
+            //if(Game1.activeClickableMenu is DialogueBox db)
+            //{
+            //    responseInd = db.selectedResponse;
+            //}
         }
 
-        private void addToDialogueList(string name, string emotion, string dialogue, List<string> responses = null)
+        private void AddToDialogueList(Dialogue charDiag, string dialogue, List<string> responses = null)
         {
-            Tuple<string, string, string, List<string>> dialogueTuple = new(name, emotion, dialogue, responses);
-            dialogueList.enqueue(dialogueTuple);
+            // Replace ^, which represent new line characters in dialogue lines
+            dialogue = dialogue.Replace("^", Environment.NewLine);
+            if (charDiag is null && dialogue.Split(Environment.NewLine).Length - 1 > 4)
+            {
+                dialogueList.enqueue(new DialogueElement(charDiag, dialogue[..dialogue.IndexOf(dialogue.Split(Environment.NewLine)[4])]));
+                dialogue = dialogue[dialogue.IndexOf(dialogue.Split(Environment.NewLine)[4])..];
+
+            }
+            DialogueElement dialogueElement = new(charDiag, dialogue);
+            dialogueList.enqueue(dialogueElement);
+
+            if(responses.Count > 0)
+            {
+                dialogue = "> ";
+                dialogue += string.Join($"{Environment.NewLine}> ", responses);
+                dialogueList.enqueue(new DialogueElement(null, dialogue));
+            }
         }
     }
 }
