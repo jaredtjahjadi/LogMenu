@@ -1,15 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using Microsoft.Xna.Framework;
+using GenericModConfigMenu;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
-using StardewModdingAPI.Utilities;
 using StardewValley;
-using StardewValley.Characters;
 using StardewValley.Menus;
-using StardewValley.Monsters;
 
 namespace DialogueLogger
 {
@@ -24,7 +19,6 @@ namespace DialogueLogger
         private ModConfig Config; // The mod configuration from the player
         private List<string> responses;
         private string prevAddedDialogue;
-        private IClickableMenu prevMenu;
 
         /*********
         ** Public methods
@@ -33,17 +27,51 @@ namespace DialogueLogger
         /// <param name="helper">Provides simplified APIs for writing mods.</param>
         public override void Entry(IModHelper helper)
         {
-            this.Config = this.Helper.ReadConfig<ModConfig>();
+            Config = Helper.ReadConfig<ModConfig>();
             dialogueList = new(Config.LogLimit);
-            helper.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
-            helper.Events.GameLoop.UpdateTicked += this.OnUpdateTicked;
-            helper.Events.Input.ButtonPressed += this.OnButtonPressed;
-            helper.Events.Display.MenuChanged += this.OnMenuChanged;
+            helper.Events.GameLoop.GameLaunched += OnGameLaunched;
+            helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
+            helper.Events.GameLoop.UpdateTicked += OnUpdateTicked;
+            helper.Events.Input.ButtonPressed += OnButtonPressed;
+            helper.Events.Display.MenuChanged += OnMenuChanged;
         }
 
         /*********
         ** Private methods
         *********/
+        /// <summary>The method called after the game is launched. Enables compatibility with Generic Mod Config Menu.</summary>
+        /// <param name="sender">The event sender.</param>
+        /// <param name="e">The event arguments.</param>
+        private void OnGameLaunched(object sender, GameLaunchedEventArgs e)
+        {
+            var configMenu = Helper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
+            if (configMenu is null) return;
+            // Register mod to Generic Mod Config Menu
+            configMenu.Register(ModManifest, () => Config = new ModConfig(), () => Helper.WriteConfig(Config));
+            configMenu.AddNumberOption(
+                mod: ModManifest,
+                name: () => "Maximum Dialogue Lines",
+                tooltip: () => "Maximum number of dialogue lines to display in the menu.",
+                getValue: () => this.Config.LogLimit,
+                setValue: value => this.Config.LogLimit = value
+            );
+            configMenu.AddBoolOption(
+                mod: ModManifest,
+                name: () => "Recent Messages First",
+                tooltip: () => "Enabling this option will cause the menu to start from the bottom, display recent messages first.",
+                getValue: () => this.Config.RecentMessagesFirst,
+                setValue: value => this.Config.RecentMessagesFirst = value
+            );
+            configMenu.AddKeybind(
+                mod: ModManifest,
+                name: () => "Log Menu Button",
+                tooltip: () => "Key to press to open Log.",
+                getValue: () => this.Config.LogButton,
+                setValue: value => this.Config.LogButton = value
+            );
+
+        }
+
         /// <summary>When loading a save, the dialogue queue is replaced with an empty one.</summary>
         /// <param name="sender">The event sender.</param>
         /// <param name="e">The event arguments.</param>
@@ -88,31 +116,40 @@ namespace DialogueLogger
         /// <param name="e">The event data.</param>
         private void OnButtonPressed(object sender, ButtonPressedEventArgs e)
         {
-            // Do nothing if no save file has been loaded yet or if the game is currently paused
-            if (!Context.IsWorldReady || Game1.paused) return;
+            // Do nothing if no save file has been loaded yet
+            if (!Context.IsWorldReady) return;
 
             // Upon pressing the Log button
-            if (e.Button == this.Config.LogButton)
+            if (e.Button == Config.LogButton)
             {
                 // Only open log menu when game is not paused
                 if ((Game1.activeClickableMenu == null || Game1.IsMultiplayer) && !Game1.paused)
                 {
-                    prevMenu = Game1.activeClickableMenu;
                     // Set activeClickableMenu to LogMenu, passing the dialogue list
-                    Game1.activeClickableMenu = new LogMenu(this.dialogueList);
+                    Game1.activeClickableMenu = new LogMenu(dialogueList, Config.RecentMessagesFirst);
                     Game1.playSound("bigSelect"); // Play "bloop bleep" sound upon opening menu
                 }
                 else if(Game1.activeClickableMenu is LogMenu)
                 {
-                    Game1.activeClickableMenu = prevMenu is DialogueBox ? prevMenu : null;
+                    Game1.activeClickableMenu = null;
                     Game1.playSound("bigDeSelect"); // Play "bleep bloop" sound upon closing menu
                 }
             }
 
-            // Check response to an in-game dialogue question upon button click
-            //if(Game1.activeClickableMenu is DialogueBox db)
+            //Check response to an in-game dialogue question upon button click
+            //if (Game1.activeClickableMenu is DialogueBox db)
             //{
-            //    responseInd = db.selectedResponse;
+            //    List<Response> responses = db.responses;
+            //    int responseInd = db.selectedResponse;
+
+            //    // Code to check if player pressed button to close dialogue box (??????)
+            //    /**
+            //     * Pseudocode:
+            //     * if (player button == (button to open menu (E or Escape by default)) || no event is playing rn)
+            //     *     Player response = responses.count - 1 (usually the leave option)
+            //     */
+
+            //    if (responseInd < 0 || responses == null || responseInd > responses.Count || responses[responseInd] == null) return;
             //}
         }
 

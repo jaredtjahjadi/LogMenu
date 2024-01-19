@@ -3,13 +3,8 @@ using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
 using StardewValley.BellsAndWhistles;
 using StardewValley.Menus;
-using StardewValley.Minigames;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace DialogueLogger
 {
@@ -18,7 +13,8 @@ namespace DialogueLogger
         private int linesPerPage = 4; // Number of dialogue lines visible in menu without having to scroll
         private List<DialogueElement> dialogueList = new(); // Full dialogue list
         private List<ClickableComponent> dialogueSlots = new(); // Visible dialogue lines on screen
-        private int currentItemIndex;
+        private int currentItemIndex; // Current position in log menu
+        private ModConfig Config;
 
         // Scrollbar elements
         public ClickableTextureComponent upArrow;
@@ -26,11 +22,12 @@ namespace DialogueLogger
         private ClickableTextureComponent scrollBar;
         private Rectangle scrollBarRunner;
 
-        public LogMenu(DialogueQueue<DialogueElement> dialogues)
+        public LogMenu(DialogueQueue<DialogueElement> dialogues, bool recentMessagesFirst)
         {
             foreach (DialogueElement dialogue in dialogues) dialogueList.Add(dialogue);
             // Starts from the bottom of the list (most recently added lines)
-            currentItemIndex = dialogueList.Count > linesPerPage ? dialogueList.Count - linesPerPage : 0;
+            currentItemIndex = recentMessagesFirst ? (dialogueList.Count > linesPerPage ? dialogueList.Count - linesPerPage : 0) : 0;
+            //currentItemIndex = dialogueList.Count > linesPerPage ? dialogueList.Count - linesPerPage : 0;
             SetPositions();
         }
 
@@ -92,7 +89,7 @@ namespace DialogueLogger
 
         public override void gameWindowSizeChanged(Rectangle oldBounds, Rectangle newBounds) { SetPositions(); }
 
-        // Display elements to screen
+        // Draw (display) menu elements to screen
         public override void draw(SpriteBatch b)
         {
             // Displays background or uses fade-to-black rectangle against gameplay, depending on in-game Menu Backgrounds option
@@ -109,19 +106,35 @@ namespace DialogueLogger
             {
                 if (currentItemIndex >= 0 && currentItemIndex + i < dialogueList.Count)
                 {
+                    // Calls draw method of DialogueElement
                     dialogueList[currentItemIndex + i].draw(b, dialogueSlots[i].bounds.X, dialogueSlots[i].bounds.Y + Game1.tileSize / 4);
 
-                    // Draws the character portrait right-aligned
+                    // Draws the character portrait aligned to the right of the menu
                     ClickableComponent button = dialogueSlots[i];
                     DialogueElement currElem = dialogueList[currentItemIndex + i];
                     if (currElem.charDiag is not null)
                     {
-                        b.Draw(Game1.mouseCursors, new Vector2(button.bounds.X + button.bounds.Width - 128 - borderWidth / 2 - Game1.pixelZoom * 2, button.bounds.Y + button.bounds.Height / 2 - 64), new Rectangle(603, 414, 74, 74), Color.White, 0f, Vector2.Zero, button.bounds.Height / 74f, SpriteEffects.None, 0.88f);
+                        // Portrait background
+                        b.Draw(Game1.mouseCursors,
+                            new Vector2(
+                                button.bounds.X + button.bounds.Width - 128 - borderWidth / 2 - Game1.pixelZoom * 2,
+                                button.bounds.Y + button.bounds.Height / 2 - 64
+                            ),
+                            new Rectangle(603, 414, 74, 74), Color.White, 0f, Vector2.Zero,
+                            button.bounds.Height / 74f, SpriteEffects.None, 0.88f
+                        );
+
                         Dialogue currCharDiag = currElem.charDiag;
                         Texture2D portraitTexture = currCharDiag.overridePortrait ?? currCharDiag.speaker.Portrait;
                         Rectangle portraitSource = Game1.getSourceRectForStandardTileSheet(portraitTexture, currCharDiag.getPortraitIndex(), 64, 64);
                         if (!portraitTexture.Bounds.Contains(portraitSource)) portraitSource = new Rectangle(0, 0, 64, 64);
-                        b.Draw(portraitTexture, new Vector2(button.bounds.X + button.bounds.Width - 128 - borderWidth / 2, button.bounds.Y + button.bounds.Height / 2 - 64 + Game1.pixelZoom * 2), portraitSource, Color.White, 0f, Vector2.Zero, 2f, SpriteEffects.None, 0.88f);
+                        b.Draw(
+                            portraitTexture,
+                            new Vector2(
+                                button.bounds.X + button.bounds.Width - 128 - borderWidth / 2,
+                                button.bounds.Y + button.bounds.Height / 2 - 64 + Game1.pixelZoom * 2
+                            ),
+                            portraitSource, Color.White, 0f, Vector2.Zero, 2f, SpriteEffects.None, 0.88f);
                     }
                 }
             }
@@ -134,14 +147,9 @@ namespace DialogueLogger
                 if (dialogueList.Count > linesPerPage)
                 {
                     drawTextureBox(
-                        b,
-                        Game1.mouseCursors,
-                        new Rectangle(403, 383, 6, 6),
-                        scrollBarRunner.X, scrollBarRunner.Y,
-                        scrollBarRunner.Width, scrollBarRunner.Height,
-                        Color.White,
-                        Game1.pixelZoom,
-                        false
+                        b, Game1.mouseCursors, new Rectangle(403, 383, 6, 6),
+                        scrollBarRunner.X, scrollBarRunner.Y, scrollBarRunner.Width, scrollBarRunner.Height,
+                        Color.White, Game1.pixelZoom, false
                     );
                     scrollBar.draw(b);
                 }
