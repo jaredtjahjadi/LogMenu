@@ -15,10 +15,10 @@ namespace DialogueLogger
 {
     internal class LogMenu : IClickableMenu
     {
-        private int currentItemIndex;
         private int linesPerPage = 4; // Number of dialogue lines visible in menu without having to scroll
         private List<DialogueElement> dialogueList = new(); // Full dialogue list
         private List<ClickableComponent> dialogueSlots = new(); // Visible dialogue lines on screen
+        private int currentItemIndex;
 
         // Scrollbar elements
         public ClickableTextureComponent upArrow;
@@ -28,7 +28,9 @@ namespace DialogueLogger
 
         public LogMenu(DialogueQueue<DialogueElement> dialogues)
         {
-            foreach(DialogueElement dialogue in dialogues) dialogueList.Add(dialogue);
+            foreach (DialogueElement dialogue in dialogues) dialogueList.Add(dialogue);
+            // Starts from the bottom of the list (most recently added lines)
+            currentItemIndex = dialogueList.Count > linesPerPage ? dialogueList.Count - linesPerPage : 0;
             SetPositions();
         }
 
@@ -101,8 +103,8 @@ namespace DialogueLogger
             Game1.drawDialogueBox(xPositionOnScreen, yPositionOnScreen, width, height, false, true);
 
             // Dialogue text
-            if(dialogueList.Count == 0)
-                SpriteText.drawStringHorizontallyCenteredAt(b, "No Dialogue Lines", Game1.uiViewport.Width / 2, Game1.uiViewport.Height / 2);
+            // If no dialogue lines have been logged as of yet, display a message at the center of the screen
+            if(dialogueList.Count == 0) SpriteText.drawStringHorizontallyCenteredAt(b, "No Dialogue Lines", Game1.uiViewport.Width / 2, Game1.uiViewport.Height / 2);
             for(int i = 0; i < dialogueSlots.Count; ++i)
             {
                 if (currentItemIndex >= 0 && currentItemIndex + i < dialogueList.Count)
@@ -177,28 +179,21 @@ namespace DialogueLogger
             // Grabs up arrow, down arrow, and scrollbar sprites from Game1.mouseCursors (<Stardew Valley direectory>\Content\LooseSprites\Cursors)
             upArrow = new ClickableTextureComponent(
                 new Rectangle(
-                    spaceBtwnMenuAndArrows,
-                    yPositionOnScreen + Game1.tileSize,
-                    11 * Game1.pixelZoom,
-                    12 * Game1.pixelZoom
+                    spaceBtwnMenuAndArrows, yPositionOnScreen + Game1.tileSize,
+                    11 * Game1.pixelZoom, 12 * Game1.pixelZoom
                 ),
-                Game1.mouseCursors,
-                new Rectangle(421, 459, 11, 12),
-                Game1.pixelZoom);
+                Game1.mouseCursors, new Rectangle(421, 459, 11, 12), Game1.pixelZoom);
             downArrow = new ClickableTextureComponent(
                 new Rectangle(
-                    spaceBtwnMenuAndArrows,
-                    yPositionOnScreen + height - Game1.tileSize,
-                    11 * Game1.pixelZoom,
-                    12 * Game1.pixelZoom
+                    spaceBtwnMenuAndArrows, yPositionOnScreen + height - Game1.tileSize,
+                    11 * Game1.pixelZoom, 12 * Game1.pixelZoom
                 ),
                 Game1.mouseCursors,
                 new Rectangle(421, 472, 11, 12),
                 Game1.pixelZoom);
             scrollBar = new ClickableTextureComponent(
                 new Rectangle(
-                    upArrow.bounds.X + Game1.pixelZoom * 3,
-                    upArrow.bounds.Y + upArrow.bounds.Height + Game1.pixelZoom,
+                    upArrow.bounds.X + Game1.pixelZoom * 3, upArrow.bounds.Y + upArrow.bounds.Height + Game1.pixelZoom,
                     6 * Game1.pixelZoom, 10 * Game1.pixelZoom
                 ),
                 Game1.mouseCursors,
@@ -211,6 +206,7 @@ namespace DialogueLogger
                 scrollBar.bounds.Width,
                 height - Game1.tileSize * 2 - upArrow.bounds.Height - Game1.pixelZoom * 2
             );
+            SetScrollBarToCurrentIndex();
         }
     }
 }
