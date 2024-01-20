@@ -48,6 +48,7 @@ namespace LogMenu
             if (configMenu is null) return;
             // Register mod to Generic Mod Config Menu
             configMenu.Register(ModManifest, () => Config = new ModConfig(), () => Helper.WriteConfig(Config));
+            // Config to set max # of lines in Log Menu
             configMenu.AddNumberOption(
                 mod: ModManifest,
                 name: () => Helper.Translation.Get("config.log-limit.name"),
@@ -55,6 +56,7 @@ namespace LogMenu
                 getValue: () => this.Config.LogLimit,
                 setValue: value => this.Config.LogLimit = value
             );
+            // Config to set if the menu starts from the bottom
             configMenu.AddBoolOption(
                 mod: ModManifest,
                 name: () => Helper.Translation.Get("config.start-from-bottom.name"),
@@ -62,9 +64,10 @@ namespace LogMenu
                 getValue: () => this.Config.StartFromBottom,
                 setValue: value => this.Config.StartFromBottom = value
             );
+            // Config to reassign Log Menu button
             configMenu.AddKeybind(
                 mod: ModManifest,
-                name: () => Helper.Translation.Get("config.log-menu-button.tooltip"),
+                name: () => Helper.Translation.Get("config.log-menu-button.name"),
                 tooltip: () => Helper.Translation.Get("config.log-menu-button.tooltip"),
                 getValue: () => this.Config.LogButton,
                 setValue: value => this.Config.LogButton = value
@@ -92,7 +95,7 @@ namespace LogMenu
             if (Game1.activeClickableMenu is DialogueBox db)
             {
                 // Dialogue boxes with questions
-                responses = new();
+                responses = new(); // Reset responses, so responses from previous questions don't get carried over
                 if (db.isQuestion)
                 {
                     // Converts each response from Response to string, then adds it to responses list variable
@@ -136,7 +139,8 @@ namespace LogMenu
                 }
             }
 
-            //Check response to an in-game dialogue question upon button click
+            // uhh idk how to do this part lol so if anyone knows feel free to help 🙏
+            // Check response to an in-game dialogue question upon button click
             //if (Game1.activeClickableMenu is DialogueBox db)
             //{
             //    List<Response> responses = db.responses;
@@ -153,7 +157,8 @@ namespace LogMenu
             //}
         }
 
-        private void AddToDialogueList(Dialogue charDiag, string dialogue, List<string> responses = null)
+        // Adds provided dialogue line to dialogue list
+        private void AddToDialogueList(Dialogue charDiag, string dialogue, List<string> responses)
         {
             // Replace ^, which represent new line characters in dialogue lines
             dialogue = dialogue.Replace("^", Environment.NewLine);
