@@ -6,7 +6,7 @@ using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Menus;
 
-namespace DialogueLogger
+namespace LogMenu
 {
     /// <summary>The mod entry point.</summary>
     internal sealed class ModEntry : Mod
@@ -50,22 +50,22 @@ namespace DialogueLogger
             configMenu.Register(ModManifest, () => Config = new ModConfig(), () => Helper.WriteConfig(Config));
             configMenu.AddNumberOption(
                 mod: ModManifest,
-                name: () => "Maximum Dialogue Lines",
-                tooltip: () => "Maximum number of dialogue lines to display in the menu.",
+                name: () => Helper.Translation.Get("config.log-limit.name"),
+                tooltip: () => Helper.Translation.Get("config.log-limit.tooltip"),
                 getValue: () => this.Config.LogLimit,
                 setValue: value => this.Config.LogLimit = value
             );
             configMenu.AddBoolOption(
                 mod: ModManifest,
-                name: () => "Recent Messages First",
-                tooltip: () => "Enabling this option will cause the menu to start from the bottom, display recent messages first.",
-                getValue: () => this.Config.RecentMessagesFirst,
-                setValue: value => this.Config.RecentMessagesFirst = value
+                name: () => Helper.Translation.Get("config.start-from-bottom.name"),
+                tooltip: () => Helper.Translation.Get("config.start-from-bottom.tooltip"),
+                getValue: () => this.Config.StartFromBottom,
+                setValue: value => this.Config.StartFromBottom = value
             );
             configMenu.AddKeybind(
                 mod: ModManifest,
-                name: () => "Log Menu Button",
-                tooltip: () => "Key to press to open Log.",
+                name: () => Helper.Translation.Get("config.log-menu-button.tooltip"),
+                tooltip: () => Helper.Translation.Get("config.log-menu-button.tooltip"),
                 getValue: () => this.Config.LogButton,
                 setValue: value => this.Config.LogButton = value
             );
@@ -126,7 +126,7 @@ namespace DialogueLogger
                 if ((Game1.activeClickableMenu == null || Game1.IsMultiplayer) && !Game1.paused)
                 {
                     // Set activeClickableMenu to LogMenu, passing the dialogue list
-                    Game1.activeClickableMenu = new LogMenu(dialogueList, Config.RecentMessagesFirst);
+                    Game1.activeClickableMenu = new LogMenu(dialogueList, Config.StartFromBottom);
                     Game1.playSound("bigSelect"); // Play "bloop bleep" sound upon opening menu
                 }
                 else if(Game1.activeClickableMenu is LogMenu)

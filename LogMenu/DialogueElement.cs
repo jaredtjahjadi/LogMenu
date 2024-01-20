@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
 using StardewValley.Menus;
 
-namespace DialogueLogger
+namespace LogMenu
 {
     internal class DialogueElement
     {

@@ -1,0 +1,9 @@
+{
+  // Config
+  "config.log-limit.name": "Maximum Dialogue Lines",
+  "config.log-limit.tooltip": "Maximum number of dialogue lines to display in the menu.",
+  "config.start-from-bottom.name": "Start From Bottom",
+  "config.start-from-bottom.tooltip": "Enabling this option will cause the menu to start from the bottom and go up.",
+  "config.log-menu-button.name": "Log Menu Button",
+  "config.log-menu-button.tooltip": "Key to press to open the Log Menu."
+}

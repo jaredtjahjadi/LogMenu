@@ -6,7 +6,7 @@ using StardewValley.Menus;
 using System;
 using System.Collections.Generic;
 
-namespace DialogueLogger
+namespace LogMenu
 {
     internal class LogMenu : IClickableMenu
     {
@@ -14,7 +14,6 @@ namespace DialogueLogger
         private List<DialogueElement> dialogueList = new(); // Full dialogue list
         private List<ClickableComponent> dialogueSlots = new(); // Visible dialogue lines on screen
         private int currentItemIndex; // Current position in log menu
-        private ModConfig Config;
 
         // Scrollbar elements
         public ClickableTextureComponent upArrow;

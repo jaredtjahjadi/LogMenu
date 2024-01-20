@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace DialogueLogger
+namespace LogMenu
 {
     // Wrapper class for queue - the difference is the queue has a max amount of elements
     public class DialogueQueue<T> : Queue<T>, IEnumerable<T>
