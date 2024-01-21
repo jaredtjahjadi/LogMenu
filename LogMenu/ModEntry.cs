@@ -48,7 +48,8 @@ namespace LogMenu
             if (configMenu is null) return;
             // Register mod to Generic Mod Config Menu
             configMenu.Register(ModManifest, () => Config = new ModConfig(), () => Helper.WriteConfig(Config));
-            // Config to set max # of lines in Log Menu
+            
+            // Display config options in Generic Mod Config Menu
             configMenu.AddNumberOption(
                 mod: ModManifest,
                 name: () => Helper.Translation.Get("config.log-limit.name"),
@@ -56,7 +57,6 @@ namespace LogMenu
                 getValue: () => this.Config.LogLimit,
                 setValue: value => this.Config.LogLimit = value
             );
-            // Config to set if the menu starts from the bottom
             configMenu.AddBoolOption(
                 mod: ModManifest,
                 name: () => Helper.Translation.Get("config.start-from-bottom.name"),
@@ -78,7 +78,6 @@ namespace LogMenu
                 getValue: () => this.Config.NonNPCDialogue,
                 setValue: value => this.Config.NonNPCDialogue = value
             );
-            // Config to reassign Log Menu button
             configMenu.AddKeybind(
                 mod: ModManifest,
                 name: () => Helper.Translation.Get("config.log-menu-button.name"),
@@ -148,7 +147,7 @@ namespace LogMenu
                 }
                 else if(Game1.activeClickableMenu is LogMenu)
                 {
-                    Game1.activeClickableMenu = null;
+                    Game1.exitActiveMenu();
                     Game1.playSound("bigDeSelect"); // Play "bleep bloop" sound upon closing menu
                 }
             }
@@ -165,6 +164,7 @@ namespace LogMenu
             //     * Pseudocode:
             //     * if (player button == (button to open menu (E or Escape by default)) || no event is playing rn)
             //     *     Player response = responses.count - 1 (usually the leave option)
+            //     * Modify existing response text in dialogue list so that chosen response is bold
             //     */
 
             //    if (responseInd < 0 || responses == null || responseInd > responses.Count || responses[responseInd] == null) return;
