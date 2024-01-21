@@ -4,8 +4,8 @@
 ![](preview.gif)
 
 ## Install
-1. [Install the latest version of SMAPI.](https://smapi.io/)
-2. Install this mod from Nexus Mods. (TBD)
+1. [Install the latest version of SMAPI](https://smapi.io/).
+2. [Install this mod from Nexus Mods](https://www.nexusmods.com/stardewvalley/mods/19919).
 3. Run the game using SMAPI.
 
 ## Usage
