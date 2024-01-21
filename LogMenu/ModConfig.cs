@@ -5,7 +5,9 @@ namespace LogMenu
     internal class ModConfig
     {
         public int LogLimit { get; set; } = 30; // Desired number of logged messages. Default = 30
-        public bool StartFromBottom { get; set; } = true; // Option to have menu start from bottom or top. Default = true (most recent)
+        public bool StartFromBottom { get; set; } = true; // Option to have menu start from bottom or top. Default = true
+        public bool OldestToNewest { get; set; } = true; // Option to have oldest messages at top of menu. Default = true
+        public bool NonNPCDialogue { get; set; } = true; // Option to log non-NPC dialogue (e.g., when interacting with objects). Default = true
         public SButton LogButton { get; set; } = SButton.L; // Desired key to open the dialogue list. Default = L
     }
 }

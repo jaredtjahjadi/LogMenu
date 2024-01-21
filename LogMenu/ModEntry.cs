@@ -64,6 +64,20 @@ namespace LogMenu
                 getValue: () => this.Config.StartFromBottom,
                 setValue: value => this.Config.StartFromBottom = value
             );
+            configMenu.AddBoolOption(
+                mod: ModManifest,
+                name: () => Helper.Translation.Get("config.oldest-to-newest.name"),
+                tooltip: () => Helper.Translation.Get("config.oldest-to-newest.tooltip"),
+                getValue: () => this.Config.OldestToNewest,
+                setValue: value => this.Config.OldestToNewest = value
+            );
+            configMenu.AddBoolOption(
+                mod: ModManifest,
+                name: () => Helper.Translation.Get("config.non-npc-dialogue.name"),
+                tooltip: () => Helper.Translation.Get("config.non-npc-dialogue.tooltip"),
+                getValue: () => this.Config.NonNPCDialogue,
+                setValue: value => this.Config.NonNPCDialogue = value
+            );
             // Config to reassign Log Menu button
             configMenu.AddKeybind(
                 mod: ModManifest,
@@ -128,8 +142,8 @@ namespace LogMenu
                 // Only open log menu when game is not paused
                 if ((Game1.activeClickableMenu == null || Game1.IsMultiplayer) && !Game1.paused)
                 {
-                    // Set activeClickableMenu to LogMenu, passing the dialogue list
-                    Game1.activeClickableMenu = new LogMenu(dialogueList, Config.StartFromBottom);
+                    // Set activeClickableMenu to LogMenu, passing the dialogue list and config options
+                    Game1.activeClickableMenu = new LogMenu(dialogueList, Config.StartFromBottom, Config.OldestToNewest);
                     Game1.playSound("bigSelect"); // Play "bloop bleep" sound upon opening menu
                 }
                 else if(Game1.activeClickableMenu is LogMenu)
@@ -162,6 +176,7 @@ namespace LogMenu
         {
             // Replace ^, which represent new line characters in dialogue lines
             dialogue = dialogue.Replace("^", Environment.NewLine);
+            if (charDiag is null && Config.NonNPCDialogue is false) return; // If non-NPC dialogue line and non-NPC dialogue config option is false, return
             if (charDiag is null && dialogue.Split(Environment.NewLine).Length - 1 > 4)
             {
                 dialogueList.enqueue(new DialogueElement(charDiag, dialogue[..dialogue.IndexOf(dialogue.Split(Environment.NewLine)[4])]));

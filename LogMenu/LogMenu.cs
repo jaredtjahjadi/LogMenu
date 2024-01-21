@@ -21,10 +21,14 @@ namespace LogMenu
         private ClickableTextureComponent scrollBar;
         private Rectangle scrollBarRunner;
 
-        public LogMenu(DialogueQueue<DialogueElement> dialogues, bool recentMessagesFirst)
+        public LogMenu(DialogueQueue<DialogueElement> dialogues, bool recentMessagesFirst, bool OldestToNewest)
         {
-            foreach (DialogueElement dialogue in dialogues) dialogueList.Add(dialogue);
-            // Starts from the bottom of the list (most recently added lines)
+            foreach (DialogueElement dialogue in dialogues)
+            {
+                if (OldestToNewest) dialogueList.Add(dialogue);
+                else dialogueList.Insert(0, dialogue);
+            }
+            // If more than 4 dialogue lines, sets item index to either the first or last dialogue line, depending on the recentMessagesFirst config option
             currentItemIndex = recentMessagesFirst ? (dialogueList.Count > linesPerPage ? dialogueList.Count - linesPerPage : 0) : 0;
             //currentItemIndex = dialogueList.Count > linesPerPage ? dialogueList.Count - linesPerPage : 0;
             SetPositions();
