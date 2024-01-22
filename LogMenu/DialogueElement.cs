@@ -8,13 +8,15 @@ namespace LogMenu
     internal class DialogueElement
     {
         public readonly Dialogue charDiag;
+        public readonly int portraitIndex;
         public readonly string text;
         private Rectangle bounds;
 
-        public DialogueElement(Dialogue charDiag, string text)
+        public DialogueElement(Dialogue charDiag, int portraitIndex, string text)
         {
             this.charDiag = charDiag;
-            text = Game1.parseText(text, Game1.smallFont, 1000 - 128);
+            this.portraitIndex = portraitIndex;
+            text = Game1.parseText(text, Game1.smallFont, 1000 - 128 - IClickableMenu.borderWidth / 2);
             if(charDiag is not null && !Game1.options.showPortraits)
                 text = text[(text.IndexOf(":") + 2)..];
             this.text = text;

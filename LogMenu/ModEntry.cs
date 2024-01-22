@@ -121,7 +121,7 @@ namespace LogMenu
                 // In multi-part dialogues, the transitioningBigger check makes sure that incoming dialogue doesn't get logged too early
                 if (prevAddedDialogue != db.getCurrentString() && db.transitioningBigger)
                 {
-                    AddToDialogueList(db.characterDialogue, db.getCurrentString(), responses);
+                    AddToDialogueList(db.characterDialogue, db.characterDialogue.getPortraitIndex(), db.getCurrentString(), responses);
                     prevAddedDialogue = db.getCurrentString();
                 }
             }
@@ -172,25 +172,25 @@ namespace LogMenu
         }
 
         // Adds provided dialogue line to dialogue list
-        private void AddToDialogueList(Dialogue charDiag, string dialogue, List<string> responses)
+        private void AddToDialogueList(Dialogue charDiag, int portraitIndex, string dialogue, List<string> responses)
         {
             // Replace ^, which represent new line characters in dialogue lines
             dialogue = dialogue.Replace("^", Environment.NewLine);
             if (charDiag is null && Config.NonNPCDialogue is false) return; // If non-NPC dialogue line and non-NPC dialogue config option is false, return
             if (charDiag is null && dialogue.Split(Environment.NewLine).Length - 1 > 4)
             {
-                dialogueList.enqueue(new DialogueElement(charDiag, dialogue[..dialogue.IndexOf(dialogue.Split(Environment.NewLine)[4])]));
+                dialogueList.enqueue(new DialogueElement(charDiag, portraitIndex, dialogue[..dialogue.IndexOf(dialogue.Split(Environment.NewLine)[4])]));
                 dialogue = dialogue[dialogue.IndexOf(dialogue.Split(Environment.NewLine)[4])..];
 
             }
-            DialogueElement dialogueElement = new(charDiag, dialogue);
+            DialogueElement dialogueElement = new(charDiag, portraitIndex, dialogue);
             dialogueList.enqueue(dialogueElement);
 
             if(responses.Count > 0)
             {
                 dialogue = "> ";
                 dialogue += string.Join($"{Environment.NewLine}> ", responses);
-                dialogueList.enqueue(new DialogueElement(null, dialogue));
+                dialogueList.enqueue(new DialogueElement(null, 0, dialogue));
             }
         }
     }

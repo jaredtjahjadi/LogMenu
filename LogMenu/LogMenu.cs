@@ -117,27 +117,28 @@ namespace LogMenu
                     DialogueElement currElem = dialogueList[currentItemIndex + i];
                     if (currElem.charDiag is not null && Game1.options.showPortraits)
                     {
-                        // Portrait background
+                        // Portrait background (from LooseSprites\Cursors)
                         b.Draw(Game1.mouseCursors,
                             new Vector2(
                                 button.bounds.X + button.bounds.Width - 128 - borderWidth / 2 - Game1.pixelZoom * 2,
-                                button.bounds.Y + button.bounds.Height / 2 - 64
+                                button.bounds.Y + button.bounds.Height / 2 - 64 + 1
                             ),
                             new Rectangle(603, 414, 74, 74), Color.White, 0f, Vector2.Zero,
                             button.bounds.Height / 74f, SpriteEffects.None, 0.88f
                         );
 
+                        // Character portrait
                         Dialogue currCharDiag = currElem.charDiag;
                         Texture2D portraitTexture = currCharDiag.overridePortrait ?? currCharDiag.speaker.Portrait;
-                        Rectangle portraitSource = Game1.getSourceRectForStandardTileSheet(portraitTexture, currCharDiag.getPortraitIndex(), 64, 64);
+                        Rectangle portraitSource = Game1.getSourceRectForStandardTileSheet(portraitTexture, currElem.portraitIndex, 64, 64);
                         if (!portraitTexture.Bounds.Contains(portraitSource)) portraitSource = new Rectangle(0, 0, 64, 64);
                         b.Draw(
                             portraitTexture,
                             new Vector2(
-                                button.bounds.X + button.bounds.Width - 128 - borderWidth / 2,
-                                button.bounds.Y + button.bounds.Height / 2 - 64 + Game1.pixelZoom * 2
+                                button.bounds.X + button.bounds.Width - 128 - borderWidth / 2 + 2,
+                                button.bounds.Y + button.bounds.Height / 2 - 64 + Game1.pixelZoom * 2 + 3
                             ),
-                            portraitSource, Color.White, 0f, Vector2.Zero, 2f, SpriteEffects.None, 0.88f);
+                            portraitSource, Color.White, 0f, Vector2.Zero, 122/64f, SpriteEffects.None, 0.88f);
                     }
                 }
             }
