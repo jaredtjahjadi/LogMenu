@@ -121,7 +121,7 @@ namespace LogMenu
                 // In multi-part dialogues, the transitioningBigger check makes sure that incoming dialogue doesn't get logged too early
                 if (prevAddedDialogue != db.getCurrentString() && db.transitioningBigger)
                 {
-                    AddToDialogueList(db.characterDialogue, db.characterDialogue.getPortraitIndex(), db.getCurrentString(), responses);
+                    AddToDialogueList(db.characterDialogue, (db.characterDialogue is null) ? 0 : db.characterDialogue.getPortraitIndex(), db.getCurrentString(), responses);
                     prevAddedDialogue = db.getCurrentString();
                 }
             }
@@ -181,7 +181,6 @@ namespace LogMenu
             {
                 dialogueList.enqueue(new DialogueElement(charDiag, portraitIndex, dialogue[..dialogue.IndexOf(dialogue.Split(Environment.NewLine)[4])]));
                 dialogue = dialogue[dialogue.IndexOf(dialogue.Split(Environment.NewLine)[4])..];
-
             }
             DialogueElement dialogueElement = new(charDiag, portraitIndex, dialogue);
             dialogueList.enqueue(dialogueElement);
