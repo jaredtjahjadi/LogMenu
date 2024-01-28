@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using GenericModConfigMenu;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
@@ -19,6 +20,7 @@ namespace LogMenu
         private ModConfig Config; // The mod configuration from the player
         private List<string> responses;
         private string prevAddedDialogue;
+        private bool prevIsHud;
 
         /*********
         ** Public methods
@@ -50,13 +52,6 @@ namespace LogMenu
             configMenu.Register(ModManifest, () => Config = new ModConfig(), () => Helper.WriteConfig(Config));
             
             // Display config options in Generic Mod Config Menu
-            configMenu.AddNumberOption(
-                mod: ModManifest,
-                name: () => Helper.Translation.Get("config.log-limit.name"),
-                tooltip: () => Helper.Translation.Get("config.log-limit.tooltip"),
-                getValue: () => this.Config.LogLimit,
-                setValue: value => this.Config.LogLimit = value
-            );
             configMenu.AddBoolOption(
                 mod: ModManifest,
                 name: () => Helper.Translation.Get("config.start-from-bottom.name"),
@@ -78,6 +73,20 @@ namespace LogMenu
                 getValue: () => this.Config.NonNPCDialogue,
                 setValue: value => this.Config.NonNPCDialogue = value
             );
+            configMenu.AddBoolOption(
+                mod: ModManifest,
+                name: () => Helper.Translation.Get("config.toggle-hud-messages.name"),
+                tooltip: () => Helper.Translation.Get("config.toggle-hud-messages.tooltip"),
+                getValue: () => this.Config.ToggleHUDMessages,
+                setValue: value => this.Config.ToggleHUDMessages = value
+            );
+            configMenu.AddNumberOption(
+                mod: ModManifest,
+                name: () => Helper.Translation.Get("config.log-limit.name"),
+                tooltip: () => Helper.Translation.Get("config.log-limit.tooltip"),
+                getValue: () => this.Config.LogLimit,
+                setValue: value => this.Config.LogLimit = value
+            );
             configMenu.AddKeybind(
                 mod: ModManifest,
                 name: () => Helper.Translation.Get("config.log-menu-button.name"),
@@ -95,7 +104,7 @@ namespace LogMenu
 
         // Handles repeatable dialogue (e.g., repeatedly interacting with objects, some NPC lines, some event lines)
         // by resetting prevAddedDialogue to null
-        private void OnMenuChanged(object sender, MenuChangedEventArgs e) { if(e.NewMenu == null) prevAddedDialogue = null; }
+        private void OnMenuChanged(object sender, MenuChangedEventArgs e) { if(e.NewMenu == null && !prevIsHud) prevAddedDialogue = null; }
 
         /// <summary>The method invoked when the game updates its state.</summary>
         /// <param name="sender">The event sender.</param>
@@ -112,17 +121,38 @@ namespace LogMenu
                 if (db.isQuestion)
                 {
                     // Converts each response from Response to string, then adds it to responses list variable
-                    for (int i = 0; i < db.responses.Count; i++) responses.Add(db.responses[i].responseText);
+                    for (int i = 0; i < db.responses.Length; i++) responses.Add(db.responses[i].responseText);
                     // TODO: Check player's response to question
                     //this.Monitor.Log($"{responseInd}", LogLevel.Debug);
                 }
 
                 // Adding dialogue to log
                 // In multi-part dialogues, the transitioningBigger check makes sure that incoming dialogue doesn't get logged too early
-                if (prevAddedDialogue != db.getCurrentString() && db.transitioningBigger)
+                string currStr = db.getCurrentString();
+                if (prevAddedDialogue != currStr && db.transitioningBigger)
                 {
-                    AddToDialogueList(db.characterDialogue, (db.characterDialogue is null) ? 0 : db.characterDialogue.getPortraitIndex(), db.getCurrentString(), responses);
-                    prevAddedDialogue = db.getCurrentString();
+                    AddToDialogueList(db.characterDialogue, (db.characterDialogue is null) ? 0 : db.characterDialogue.getPortraitIndex(), currStr, responses);
+                    prevAddedDialogue = currStr;
+                    prevIsHud = false;
+                }
+            }
+
+            // HUD messages
+            if (!Config.ToggleHUDMessages) return; // Return if toggle HUD messages config option is unchecked
+            // Return if there are HUD messages and an active clickable menu on screen at the same time
+            // (this was the only way I knew how to get the HUD messages to not spam the log menu 😔)
+            if (Game1.hudMessages.Count > 0 && Game1.activeClickableMenu != null) return;
+            foreach (HUDMessage h in Game1.hudMessages)
+            {
+                // Add HUD message to log
+                // Filter out notifications of items being added to inventory
+                if (h.messageSubject != null && h.type == h.messageSubject.Name) return;
+                string hudMessage = h.message;
+                if (prevAddedDialogue != hudMessage)
+                {
+                    AddToDialogueList(null, 0, hudMessage, new());
+                    prevAddedDialogue = hudMessage;
+                    prevIsHud = true;
                 }
             }
         }
@@ -152,6 +182,20 @@ namespace LogMenu
                 }
             }
 
+            // If event skipped, add skipped lines to dialogueList
+            //if(Game1.currentLocation.currentEvent != null && !Game1.currentLocation.currentEvent.skipped && Game1.currentLocation.currentEvent.skippable)
+            //{
+            //    foreach(NPC n in Game1.currentLocation.currentEvent.actors)
+            //    {
+            //        foreach(Dialogue d in n.CurrentDialogue)
+            //        {
+            //            this.Monitor.Log($"{n.displayName}: {d.dialogues}", LogLevel.Debug);
+            //        }
+            //        this.Monitor.Log("END OF CURRENT NPC", LogLevel.Debug);
+            //    }
+            //    this.Monitor.Log("END OF BUTTON PRESS LOG", LogLevel.Debug);
+            //}
+
             // uhh idk how to do this part lol so if anyone knows feel free to help 🙏
             // Check response to an in-game dialogue question upon button click
             //if (Game1.activeClickableMenu is DialogueBox db)
@@ -177,14 +221,24 @@ namespace LogMenu
             // Replace ^, which represent new line characters in dialogue lines
             dialogue = dialogue.Replace("^", Environment.NewLine);
             if (charDiag is null && Config.NonNPCDialogue is false) return; // If non-NPC dialogue line and non-NPC dialogue config option is false, return
-            if (charDiag is null && dialogue.Split(Environment.NewLine).Length - 1 > 4)
+            List<string> brokenUpDialogue = new();
+            List<string> splitDialogue = dialogue.Split(Environment.NewLine).ToList();
+            int n = splitDialogue.Count - 1;
+            // Split up long dialogue lines with more than 4 line breaks
+            if (n > 4)
             {
-                dialogueList.enqueue(new DialogueElement(charDiag, portraitIndex, dialogue[..dialogue.IndexOf(dialogue.Split(Environment.NewLine)[4])]));
-                dialogue = dialogue[dialogue.IndexOf(dialogue.Split(Environment.NewLine)[4])..];
+                for(int i = 0; i < n; i += 4)
+                {
+                    int ind1 = dialogue.IndexOf(splitDialogue[i]);
+                    brokenUpDialogue.Add((((n - i) / 4) >= 1) ? dialogue.Substring(ind1, dialogue.IndexOf(splitDialogue[i + 4]) - ind1) : dialogue[ind1..]);
+                }
+                foreach (string s in brokenUpDialogue) dialogueList.enqueue(new DialogueElement(charDiag, portraitIndex, s));
             }
-            DialogueElement dialogueElement = new(charDiag, portraitIndex, dialogue);
-            dialogueList.enqueue(dialogueElement);
-
+            else
+            {
+                DialogueElement dialogueElement = new(charDiag, portraitIndex, dialogue);
+                if (dialogue != "") dialogueList.enqueue(dialogueElement);
+            }
             if(responses.Count > 0)
             {
                 dialogue = "> ";
