@@ -120,11 +120,11 @@ namespace LogMenu
                         // Portrait background (from LooseSprites\Cursors)
                         b.Draw(Game1.mouseCursors,
                             new Vector2(
-                                button.bounds.X + button.bounds.Width - 128 - borderWidth / 2 - Game1.pixelZoom * 2,
-                                button.bounds.Y + button.bounds.Height / 2 - 64 + 1
+                                button.bounds.X + button.bounds.Width - 128 - borderWidth / 2 - Game1.pixelZoom * 2 + 1,
+                                button.bounds.Y + button.bounds.Height / 2 - 64 + Game1.pixelZoom
                             ),
                             new Rectangle(603, 414, 74, 74), Color.White, 0f, Vector2.Zero,
-                            button.bounds.Height / 74f, SpriteEffects.None, 0.88f
+                            height / button.bounds.Height / 2.13f, SpriteEffects.None, 0.88f
                         );
 
                         // Character portrait
@@ -136,9 +136,9 @@ namespace LogMenu
                             portraitTexture,
                             new Vector2(
                                 button.bounds.X + button.bounds.Width - 128 - borderWidth / 2 + 2,
-                                button.bounds.Y + button.bounds.Height / 2 - 64 + Game1.pixelZoom * 2 + 3
+                                button.bounds.Y + button.bounds.Height / 2 - 64 + Game1.pixelZoom * 3 + 1
                             ),
-                            portraitSource, Color.White, 0f, Vector2.Zero, 122/64f, SpriteEffects.None, 0.88f);
+                            portraitSource, Color.White, 0f, Vector2.Zero, height / button.bounds.Height / 2.12f, SpriteEffects.None, 0.88f);
                     }
                 }
             }

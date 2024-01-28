@@ -56,3 +56,10 @@ Changable settings:
 
 ## Compatibility
 Log Menu is compatible with Stardew Valley 1.5.6 on Linux, MacOS, and Windows.
+
+## To-Do
+- ~~Remove empty strings from dialogue list (i.e., when a dialogue box with a question has responses but no text)~~
+- Implement config option to log HUD messages
+- Implement config option to log dialogue from skipped cutscenes
+- Allow player to open Log Menu while a dialogue box is open and return to the dialogue box when the log menu is closed (???)
+- When player selects response to question, update Log Menu to make the selected response bold (???)
