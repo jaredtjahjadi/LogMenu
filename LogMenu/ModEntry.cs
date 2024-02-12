@@ -20,7 +20,7 @@ namespace LogMenu
         private ModConfig Config; // The mod configuration from the player
         private List<string> responses;
         private string prevAddedDialogue;
-        private bool prevIsHud;
+        private List<string> hudTexts; // HUD messages to go in and out
 
         /*********
         ** Public methods
@@ -31,6 +31,9 @@ namespace LogMenu
         {
             Config = Helper.ReadConfig<ModConfig>();
             dialogueList = new(Config.LogLimit);
+            hudTexts = new();
+
+            // SMAPI methods
             helper.Events.GameLoop.GameLaunched += OnGameLaunched;
             helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
             helper.Events.GameLoop.UpdateTicked += OnUpdateTicked;
@@ -56,43 +59,43 @@ namespace LogMenu
                 mod: ModManifest,
                 name: () => Helper.Translation.Get("config.start-from-bottom.name"),
                 tooltip: () => Helper.Translation.Get("config.start-from-bottom.tooltip"),
-                getValue: () => this.Config.StartFromBottom,
-                setValue: value => this.Config.StartFromBottom = value
+                getValue: () => Config.StartFromBottom,
+                setValue: value => Config.StartFromBottom = value
             );
             configMenu.AddBoolOption(
                 mod: ModManifest,
                 name: () => Helper.Translation.Get("config.oldest-to-newest.name"),
                 tooltip: () => Helper.Translation.Get("config.oldest-to-newest.tooltip"),
-                getValue: () => this.Config.OldestToNewest,
-                setValue: value => this.Config.OldestToNewest = value
+                getValue: () => Config.OldestToNewest,
+                setValue: value => Config.OldestToNewest = value
             );
             configMenu.AddBoolOption(
                 mod: ModManifest,
                 name: () => Helper.Translation.Get("config.non-npc-dialogue.name"),
                 tooltip: () => Helper.Translation.Get("config.non-npc-dialogue.tooltip"),
-                getValue: () => this.Config.NonNPCDialogue,
-                setValue: value => this.Config.NonNPCDialogue = value
+                getValue: () => Config.NonNPCDialogue,
+                setValue: value => Config.NonNPCDialogue = value
             );
             configMenu.AddBoolOption(
                 mod: ModManifest,
                 name: () => Helper.Translation.Get("config.toggle-hud-messages.name"),
                 tooltip: () => Helper.Translation.Get("config.toggle-hud-messages.tooltip"),
-                getValue: () => this.Config.ToggleHUDMessages,
-                setValue: value => this.Config.ToggleHUDMessages = value
+                getValue: () => Config.ToggleHUDMessages,
+                setValue: value => Config.ToggleHUDMessages = value
             );
             configMenu.AddNumberOption(
                 mod: ModManifest,
                 name: () => Helper.Translation.Get("config.log-limit.name"),
                 tooltip: () => Helper.Translation.Get("config.log-limit.tooltip"),
-                getValue: () => this.Config.LogLimit,
-                setValue: value => this.Config.LogLimit = value
+                getValue: () => Config.LogLimit,
+                setValue: value => Config.LogLimit = value
             );
             configMenu.AddKeybind(
                 mod: ModManifest,
                 name: () => Helper.Translation.Get("config.log-menu-button.name"),
                 tooltip: () => Helper.Translation.Get("config.log-menu-button.tooltip"),
-                getValue: () => this.Config.LogButton,
-                setValue: value => this.Config.LogButton = value
+                getValue: () => Config.LogButton,
+                setValue: value => Config.LogButton = value
             );
 
         }
@@ -100,17 +103,20 @@ namespace LogMenu
         /// <summary>When loading a save, the dialogue queue is replaced with an empty one.</summary>
         /// <param name="sender">The event sender.</param>
         /// <param name="e">The event arguments.</param>
-        private void OnSaveLoaded(object sender, SaveLoadedEventArgs e) { dialogueList = new(Config.LogLimit); }
+        private void OnSaveLoaded(object sender, SaveLoadedEventArgs e) {
+            dialogueList = new(Config.LogLimit);
+            hudTexts = new();
+        }
 
         // Handles repeatable dialogue (e.g., repeatedly interacting with objects, some NPC lines, some event lines)
         // by resetting prevAddedDialogue to null
-        private void OnMenuChanged(object sender, MenuChangedEventArgs e) { if(e.NewMenu == null && !prevIsHud) prevAddedDialogue = null; }
+        private void OnMenuChanged(object sender, MenuChangedEventArgs e) { if (e.NewMenu == null) prevAddedDialogue = null; }
 
         /// <summary>The method invoked when the game updates its state.</summary>
         /// <param name="sender">The event sender.</param>
         /// <param name="e">The event arguments.</param>
         private void OnUpdateTicked(object sender, UpdateTickedEventArgs e)
-        {
+        {            
             if (!e.IsMultipleOf(15)) return; // Below code runs every quarter of a second
 
             // If the currently open menu is a dialogue box
@@ -121,7 +127,7 @@ namespace LogMenu
                 if (db.isQuestion)
                 {
                     // Converts each response from Response to string, then adds it to responses list variable
-                    for (int i = 0; i < db.responses.Length; i++) responses.Add(db.responses[i].responseText);
+                    for (int i = 0; i < db.responses.Count; i++) responses.Add(db.responses[i].responseText);
                     // TODO: Check player's response to question
                     //this.Monitor.Log($"{responseInd}", LogLevel.Debug);
                 }
@@ -131,30 +137,34 @@ namespace LogMenu
                 string currStr = db.getCurrentString();
                 if (prevAddedDialogue != currStr && db.transitioningBigger)
                 {
-                    AddToDialogueList(db.characterDialogue, (db.characterDialogue is null) ? 0 : db.characterDialogue.getPortraitIndex(), currStr, responses);
+                    int portraitIndex = (db.characterDialogue is null || !db.isPortraitBox()) ? -1 : db.characterDialogue.getPortraitIndex();
+                    Monitor.Log(db.isQuestion + "", LogLevel.Debug);
+                    if (db.isQuestion) portraitIndex = -2;
+                    AddToDialogueList(
+                        db.characterDialogue,
+                        // Determine portrait index: if no character dialogue or if db doesn't have portrait (e.g., Sam skateboarding) or if character asking question
+                        portraitIndex,
+                        currStr,
+                        responses);
                     prevAddedDialogue = currStr;
-                    prevIsHud = false;
+                    //prevIsHud = false;
                 }
             }
 
             // HUD messages
             if (!Config.ToggleHUDMessages) return; // Return if toggle HUD messages config option is unchecked
-            // Return if there are HUD messages and an active clickable menu on screen at the same time
-            // (this was the only way I knew how to get the HUD messages to not spam the log menu 😔)
-            if (Game1.hudMessages.Count > 0 && Game1.activeClickableMenu != null) return;
-            foreach (HUDMessage h in Game1.hudMessages)
+            foreach(HUDMessage h in Game1.hudMessages)
             {
-                // Add HUD message to log
-                // Filter out notifications of items being added to inventory
-                if (h.messageSubject != null && h.type == h.messageSubject.Name) return;
-                string hudMessage = h.message;
-                if (prevAddedDialogue != hudMessage)
+                string hudMsg = h.Message;
+                Item messageSubject = Helper.Reflection.GetField<Item>(h, "messageSubject").GetValue();
+                if (messageSubject != null) return;
+                if (!hudTexts.Contains(hudMsg))
                 {
-                    AddToDialogueList(null, 0, hudMessage, new());
-                    prevAddedDialogue = hudMessage;
-                    prevIsHud = true;
+                    AddToDialogueList(null, 0, hudMsg);
+                    hudTexts.Add(hudMsg);
                 }
             }
+            for(int i = 0; i < hudTexts.Count; i++) if (!Game1.doesHUDMessageExist(hudTexts[i])) hudTexts.Remove(hudTexts[i]);
         }
 
         /// <summary>Raised after the player presses a button on the keyboard, controller, or mouse.</summary>
@@ -216,11 +226,24 @@ namespace LogMenu
         }
 
         // Adds provided dialogue line to dialogue list
-        private void AddToDialogueList(Dialogue charDiag, int portraitIndex, string dialogue, List<string> responses)
+        private void AddToDialogueList(Dialogue charDiag, int portraitIndex, string dialogue, List<string> responses = null)
         {
             // Replace ^, which represent new line characters in dialogue lines
             dialogue = dialogue.Replace("^", Environment.NewLine);
             if (charDiag is null && Config.NonNPCDialogue is false) return; // If non-NPC dialogue line and non-NPC dialogue config option is false, return
+            splitDialogue(charDiag, portraitIndex, dialogue);
+
+            // Handles responses
+            if(responses != null && responses.Count > 0)
+            {
+                dialogue = "> ";
+                dialogue += string.Join($"{Environment.NewLine}> ", responses);
+                splitDialogue(charDiag, -1, dialogue);
+            }
+        }
+
+        private void splitDialogue(Dialogue charDiag, int portraitIndex, string dialogue)
+        {
             List<string> brokenUpDialogue = new();
             List<string> splitDialogue = dialogue.Split(Environment.NewLine).ToList();
             int n = splitDialogue.Count - 1;
@@ -232,18 +255,12 @@ namespace LogMenu
                     int ind1 = dialogue.IndexOf(splitDialogue[i]);
                     brokenUpDialogue.Add((((n - i) / 4) >= 1) ? dialogue.Substring(ind1, dialogue.IndexOf(splitDialogue[i + 4]) - ind1) : dialogue[ind1..]);
                 }
-                foreach (string s in brokenUpDialogue) dialogueList.enqueue(new DialogueElement(charDiag, portraitIndex, s));
+                foreach (string s in brokenUpDialogue) dialogueList.enqueue(new DialogueElement(charDiag, Game1.mouseCursors, portraitIndex, s));
             }
             else
             {
-                DialogueElement dialogueElement = new(charDiag, portraitIndex, dialogue);
+                DialogueElement dialogueElement = new(charDiag, Game1.mouseCursors, portraitIndex, dialogue);
                 if (dialogue != "") dialogueList.enqueue(dialogueElement);
-            }
-            if(responses.Count > 0)
-            {
-                dialogue = "> ";
-                dialogue += string.Join($"{Environment.NewLine}> ", responses);
-                dialogueList.enqueue(new DialogueElement(null, 0, dialogue));
             }
         }
     }

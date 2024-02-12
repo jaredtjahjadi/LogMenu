@@ -13,12 +13,12 @@ Press `L` to display the Log Menu. The 30 most recent dialogue lines will be sho
 
 ## Configuration
 ### In-Game
-If you have [Generic Mod Config Menu](https://www.nexusmods.com/stardewvalley/mods/5098) installed, you can click the cog button (⚙) on the title screen or the "Mod Options" button at the bottom of the in-game options menu to configure the mod. Hover the cursor over a field for more details, or see the nex t section.
+If you have [Generic Mod Config Menu](https://www.nexusmods.com/stardewvalley/mods/5098) installed, you can click the cog button (⚙) on the title screen or the "Mod Options" button at the bottom of the in-game options menu to configure the mod. Hover the cursor over a field for more details, or see the next section.
 
 ![](generic-mod-config-menu.png)
 
 ### `config.json`
-A `config.json` file will be created in the mod folder when it is run for the first time. You can open that file in a text editor to configure the mod. If you make a mistake, you can delete the `config.json` file and it will create a default one.
+A `config.json` file will be created in the mod folder after it is run for the first time. You can open that file in a text editor to configure the mod. If you make a mistake, you can delete the `config.json` file and it will create a default one.
 
 Changable settings:
 <table>
@@ -64,7 +64,7 @@ Log Menu is compatible with Stardew Valley 1.5.6 on Linux, MacOS, and Windows.
 
 ## To-Do
 - ~~Remove empty strings from dialogue list (i.e., when a dialogue box with a question has responses but no text)~~
-- Implement config option to log HUD messages
+- ~~Implement config option to log HUD messages~~
 - Implement config option to log dialogue from skipped cutscenes
-- Allow player to open Log Menu while a dialogue box is open and return to the dialogue box when the log menu is closed (???)
-- When player selects response to question, update Log Menu to make the selected response bold (???)
+- Allow player to open Log Menu while a dialogue box is open and return to the dialogue box when the log menu is closed
+- When player selects response to question, update Log Menu to make the selected response bold

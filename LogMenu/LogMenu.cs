@@ -115,10 +115,10 @@ namespace LogMenu
                     // Draws the character portrait aligned to the right of the menu
                     ClickableComponent button = dialogueSlots[i];
                     DialogueElement currElem = dialogueList[currentItemIndex + i];
-                    if (currElem.charDiag is not null && Game1.options.showPortraits)
+                    if (currElem.charDiag is not null && Game1.options.showPortraits && currElem.portraitIndex >= 0)
                     {
-                        // Portrait background (from LooseSprites\Cursors)
-                        b.Draw(Game1.mouseCursors,
+                        // Draw portrait background
+                        b.Draw(currElem.portraitBackground,
                             new Vector2(
                                 button.bounds.X + button.bounds.Width - 128 - borderWidth / 2 - Game1.pixelZoom * 2 + 1,
                                 button.bounds.Y + button.bounds.Height / 2 - 64 + Game1.pixelZoom
