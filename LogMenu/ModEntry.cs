@@ -127,7 +127,7 @@ namespace LogMenu
                 if (db.isQuestion)
                 {
                     // Converts each response from Response to string, then adds it to responses list variable
-                    for (int i = 0; i < db.responses.Count; i++) responses.Add(db.responses[i].responseText);
+                    for (int i = 0; i < db.responses.Length; i++) responses.Add(db.responses[i].responseText);
                     // TODO: Check player's response to question
                     //this.Monitor.Log($"{responseInd}", LogLevel.Debug);
                 }
@@ -154,7 +154,7 @@ namespace LogMenu
             if (!Config.ToggleHUDMessages) return; // Return if toggle HUD messages config option is unchecked
             foreach(HUDMessage h in Game1.hudMessages)
             {
-                string hudMsg = h.Message;
+                string hudMsg = h.message;
                 Item messageSubject = Helper.Reflection.GetField<Item>(h, "messageSubject").GetValue();
                 if (messageSubject != null) return;
                 if (!hudTexts.Contains(hudMsg))
