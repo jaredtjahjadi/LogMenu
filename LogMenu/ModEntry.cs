@@ -138,7 +138,6 @@ namespace LogMenu
                 if (prevAddedDialogue != currStr && db.transitioningBigger)
                 {
                     int portraitIndex = (db.characterDialogue is null || !db.isPortraitBox()) ? -1 : db.characterDialogue.getPortraitIndex();
-                    Monitor.Log(db.isQuestion + "", LogLevel.Debug);
                     if (db.isQuestion) portraitIndex = -2;
                     AddToDialogueList(
                         db.characterDialogue,

@@ -120,11 +120,11 @@ namespace LogMenu
                         // Draw portrait background
                         b.Draw(currElem.portraitBackground,
                             new Vector2(
-                                button.bounds.X + button.bounds.Width - 128 - borderWidth / 2 - Game1.pixelZoom * 2 + 1,
-                                button.bounds.Y + button.bounds.Height / 2 - 64 + Game1.pixelZoom
+                                button.bounds.X + button.bounds.Width - 128 - borderWidth / 2 - Game1.pixelZoom * 2 - Game1.pixelZoom + 1,
+                                button.bounds.Y + button.bounds.Height / 2 - 64 + Game1.pixelZoom - 1
                             ),
                             new Rectangle(603, 414, 74, 74), Color.White, 0f, Vector2.Zero,
-                            height / button.bounds.Height / 2.13f, SpriteEffects.None, 0.88f
+                            height / button.bounds.Height / 2.07f, SpriteEffects.None, 0.88f
                         );
 
                         // Character portrait
@@ -135,10 +135,10 @@ namespace LogMenu
                         b.Draw(
                             portraitTexture,
                             new Vector2(
-                                button.bounds.X + button.bounds.Width - 128 - borderWidth / 2 + 2,
+                                button.bounds.X + button.bounds.Width - 128 - borderWidth / 2 - 1,
                                 button.bounds.Y + button.bounds.Height / 2 - 64 + Game1.pixelZoom * 3 + 1
                             ),
-                            portraitSource, Color.White, 0f, Vector2.Zero, height / button.bounds.Height / 2.12f, SpriteEffects.None, 0.88f);
+                            portraitSource, Color.White, 0f, Vector2.Zero, height / button.bounds.Height / 2.08f, SpriteEffects.None, 0.88f);
                     }
                 }
             }
@@ -166,7 +166,7 @@ namespace LogMenu
         {
             // Menu dimensions (1000x600, + border width)
             width = 1000 + borderWidth * 2;
-            height = 600 + borderWidth * 2;
+            height = 620 + borderWidth * 2;
 
             // Starting position of menu (top-left x/y coords)
             xPositionOnScreen = (Game1.uiViewport.Width - width) / 2;
