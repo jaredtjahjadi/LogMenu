@@ -65,7 +65,7 @@ A `config.json` file will be created in the mod folder after it is run for the f
 Log Menu is compatible with Stardew Valley 1.5.6 on Linux, MacOS, and Windows.
 
 ## To-Do
-Last three on the list below are complicated (and/or am I too lazy to fix/implement them) and will likely take a while to be implemented, if at all.
+Last three on the list below are complicated (and/or I am too lazy to fix/implement them lol) and will likely take a while to be implemented, if at all.
 
 - ~~Remove empty strings from dialogue list (i.e., when a dialogue box with a question has responses but no text)~~
 - ~~Implement config option to log HUD messages~~

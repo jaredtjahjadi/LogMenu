@@ -137,8 +137,10 @@ namespace LogMenu
                 string currStr = db.getCurrentString();
                 if (prevAddedDialogue != currStr && db.transitioningBigger)
                 {
-                    int portraitIndex = (db.characterDialogue is null || !db.isPortraitBox()) ? -1 : db.characterDialogue.getPortraitIndex();
-                    if (db.isQuestion) portraitIndex = -2;
+                    int portraitIndex = (db.characterDialogue is null) ? -1 : db.characterDialogue.getPortraitIndex();
+                    if (db.isQuestion || (Game1.options.showPortraits && !db.isPortraitBox())) portraitIndex = -2;
+                    //Monitor.Log("portraitIndex = " + portraitIndex, LogLevel.Debug);
+                    //if(db.characterDialogue is not null) Monitor.Log("Emotion = " + db.characterDialogue.CurrentEmotion, LogLevel.Debug);
                     AddToDialogueList(
                         db.characterDialogue,
                         // Determine portrait index: if no character dialogue or if db doesn't have portrait (e.g., Sam skateboarding) or if character asking question
@@ -230,29 +232,29 @@ namespace LogMenu
             // Replace ^, which represent new line characters in dialogue lines
             dialogue = dialogue.Replace("^", Environment.NewLine);
             if (charDiag is null && Config.NonNPCDialogue is false) return; // If non-NPC dialogue line and non-NPC dialogue config option is false, return
-            splitDialogue(charDiag, portraitIndex, dialogue);
+            splitDialogue(charDiag, portraitIndex, dialogue, 5);
 
             // Handles responses
             if(responses != null && responses.Count > 0)
             {
                 dialogue = "> ";
                 dialogue += string.Join($"{Environment.NewLine}> ", responses);
-                splitDialogue(charDiag, -1, dialogue);
+                splitDialogue(charDiag, -1, dialogue, 5);
             }
         }
 
-        private void splitDialogue(Dialogue charDiag, int portraitIndex, string dialogue)
+        private void splitDialogue(Dialogue charDiag, int portraitIndex, string dialogue, int limit)
         {
             List<string> brokenUpDialogue = new();
             List<string> splitDialogue = dialogue.Split(Environment.NewLine).ToList();
             int n = splitDialogue.Count - 1;
             // Split up long dialogue lines with more than 4 line breaks
-            if (n > 4)
+            if (n > limit)
             {
-                for(int i = 0; i < n; i += 4)
+                for(int i = 0; i < n; i += limit)
                 {
                     int ind1 = dialogue.IndexOf(splitDialogue[i]);
-                    brokenUpDialogue.Add((((n - i) / 4) >= 1) ? dialogue.Substring(ind1, dialogue.IndexOf(splitDialogue[i + 4]) - ind1) : dialogue[ind1..]);
+                    brokenUpDialogue.Add((((n - i) / limit) >= 1) ? dialogue.Substring(ind1, dialogue.IndexOf(splitDialogue[i + limit]) - ind1) : dialogue[ind1..]);
                 }
                 foreach (string s in brokenUpDialogue) dialogueList.enqueue(new DialogueElement(charDiag, Game1.mouseCursors, portraitIndex, s));
             }

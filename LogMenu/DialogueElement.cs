@@ -19,7 +19,7 @@ namespace LogMenu
             this.portraitBackground = portraitBackground;
             this.portraitIndex = portraitIndex;
             text = Game1.parseText(text, Game1.smallFont, 1000 - 128 - IClickableMenu.borderWidth / 2);
-            if(charDiag is not null && !Game1.options.showPortraits) text = text[(text.IndexOf(":") + 2)..]; // ngl i forgot what this line was supposed to do, but it was probably for the better right?
+            if(portraitIndex != -1 && !Game1.options.showPortraits) text = text[(text.IndexOf(":") + 2)..]; // ngl i forgot what this line was supposed to do, but it was probably for the better right?
             this.text = text;
             bounds = new Rectangle(8 * Game1.pixelZoom, 4 * Game1.pixelZoom, 9 * Game1.pixelZoom, 9 * Game1.pixelZoom);
         }
