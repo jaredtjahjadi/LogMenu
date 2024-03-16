@@ -3,7 +3,6 @@
 ## Upcoming release for Stardew Valley 1.6
 
 - Updated for Stardew Valley 1.6.
-  - <code></code> is now 
 - Added toggle for HUD messages in Log Menu.
 - Added support for changing portrait backgrounds.
 - Changed default maximum dialogue lines from 30 to 50.
