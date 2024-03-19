@@ -1,6 +1,7 @@
 # Release Notes
 
 ## Upcoming release for Stardew Valley 1.6
+*Released on March 19, 2024. Compatible with Stardew Valley 1.6 or later, and SMAPI 4.0.0 or later.*
 
 - Updated for Stardew Valley 1.6.
 - Added toggle for HUD messages in Log Menu.
