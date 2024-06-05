@@ -147,13 +147,16 @@ namespace LogMenu
                 string currStr = db.getCurrentString();
                 if (prevAddedDialogue != currStr && db.transitioningBigger)
                 {
+                    // Determine portrait index: if no character dialogue or if db doesn't have portrait (e.g., Sam skateboarding) or if character asking question
                     int portraitIndex = (db.characterDialogue is null) ? -1 : db.characterDialogue.getPortraitIndex();
                     if (db.isQuestion || (Game1.options.showPortraits && !db.isPortraitBox())) portraitIndex = -2;
                     //Monitor.Log("portraitIndex = " + portraitIndex, LogLevel.Debug);
                     //if(db.characterDialogue is not null) Monitor.Log("Emotion = " + db.characterDialogue.CurrentEmotion, LogLevel.Debug);
+
+                    Monitor.Log($"Received dialogue line:{((db.characterDialogue is not null) ? $" {db.characterDialogue.speaker.displayName}:" : "") } {currStr}");
+                    if (responses.Count > 0) Monitor.Log($"Received responses: {string.Join(", ", responses)}");
                     AddToDialogueList(
                         db.characterDialogue,
-                        // Determine portrait index: if no character dialogue or if db doesn't have portrait (e.g., Sam skateboarding) or if character asking question
                         portraitIndex,
                         currStr,
                         responses);
@@ -265,12 +268,21 @@ namespace LogMenu
                     int ind1 = dialogue.IndexOf(splitDialogue[i]);
                     brokenUpDialogue.Add((((n - i) / limit) >= 1) ? dialogue.Substring(ind1, dialogue.IndexOf(splitDialogue[i + limit]) - ind1) : dialogue[ind1..]);
                 }
-                foreach (string s in brokenUpDialogue) dialogueList.enqueue(new DialogueElement(charDiag, Game1.mouseCursors, portraitIndex, s));
+                foreach (string s in brokenUpDialogue)
+                {
+                    dialogueList.enqueue(new DialogueElement(charDiag, Game1.mouseCursors, portraitIndex, s));
+                    Monitor.Log($"Added string to dialogue list: {s}");
+
+                }
             }
             else
             {
                 DialogueElement dialogueElement = new(charDiag, Game1.mouseCursors, portraitIndex, dialogue);
-                if (dialogue != "") dialogueList.enqueue(dialogueElement);
+                if (dialogue != "")
+                {
+                    dialogueList.enqueue(dialogueElement);
+                    Monitor.Log($"Added string to dialogue list: {dialogue}");
+                }
             }
         }
     }

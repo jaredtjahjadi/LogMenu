@@ -3,6 +3,7 @@
 ## 1.2.1
 *Released on June 4, 2024. Compatible with Stardew Valley 1.6 or later, and SMAPI 4.0.0 or later.*
 
+- Added trace message logging for easier troubleshooting in the future.
 - Fixed an issue in which the Log Menu was able to be opened in unexpected scenarios (e.g., during minigames, the end credits roll). However, the menu can no longer be opened during heart events nor story events.
 - Fixed an issue in which longer messages (e.g., the Perfection Tracker) would not be logged and cause an error in the console.
 - Fixed an issue in which the responses for some questions (e.g., during the Linus trash can rummaging event) caused a GameLoop.UpdateTicked event error in the console and the question looping in the Log Menu until the question is passed.
