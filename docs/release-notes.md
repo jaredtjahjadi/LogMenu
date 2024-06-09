@@ -1,5 +1,10 @@
 # Release Notes
 
+## 1.2.2
+*Released on June 9, 2024. Compatible with Stardew Valley 1.6 or later, and SMAPI 4.0.0 or later.*
+
+- Added French translation for configuration options. Thank you, Caranud!
+
 ## 1.2.1
 *Released on June 4, 2024. Compatible with Stardew Valley 1.6 or later, and SMAPI 4.0.0 or later.*
 
