@@ -1,0 +1,14 @@
+{
+  "config.start-from-bottom.name": "下から表示",
+  "config.start-from-bottom.tooltip": "ログメニューを開いたときに、一番下から表示する。オフにすると逆になる。",
+  "config.oldest-to-newest.name": "古いログの表示順",
+  "config.oldest-to-newest.tooltip": "ログメニューのメッセージを上から順に古いもので表示する。オフにすると逆になる。",
+  "config.non-npc-dialogue.name": "NPC以外の対話",
+  "config.non-npc-dialogue.tooltip": "オブジェクトや家具などとのインタラクションによる対話を含める。",
+  "config.toggle-hud-messages.name": "HUDメッセージ",
+  "config.toggle-hud-messages.tooltip": "HUDメッセージを含める（新規日記など）。アイテムを収集する際のHUDメッセージは含まれません。",
+  "config.log-limit.name": "ダイアログの最大行数",
+  "config.log-limit.tooltip": "メニューに表示するダイアログの最大行数。",
+  "config.log-menu-button.name": "ログメニューを開くキー",
+  "config.log-menu-button.tooltip": "指定キーを押すとログメニューが開く。"
+}
