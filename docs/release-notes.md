@@ -1,9 +1,17 @@
 # Release Notes
 
+## 1.2.3
+We're so back!<br>
+*Released on June 2, 2025. Compatible with Stardew Valley 1.6 or later, and SMAPI 4.0.0 or later.*
+
+- Fixed larger dialogues (e.g., Fishing Channel text boxes) causing a GameLoop.UpdateTicked event error.
+- The Log Menu can now be opened during events/cutscenes again, but only when there is no dialogue currently on screen.
+- Added Japanese translation for configuration options. Thank you, [mitekano23](https://github.com/mitekano23)!
+
 ## 1.2.2
 *Released on June 9, 2024. Compatible with Stardew Valley 1.6 or later, and SMAPI 4.0.0 or later.*
 
-- Added French translation for configuration options. Thank you, Caranud!
+- Added French translation for configuration options. Thank you, [Caranud](https://github.com/CaranudLapin)!
 
 ## 1.2.1
 *Released on June 4, 2024. Compatible with Stardew Valley 1.6 or later, and SMAPI 4.0.0 or later.*

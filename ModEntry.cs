@@ -192,7 +192,7 @@ namespace LogMenu
             if (e.Button == Config.LogButton)
             {
                 // Open log menu if in-game conditions are fulfilled (player is free, not using tool, not eating, not playing a minigame)
-                if (Context.IsPlayerFree && !Game1.player.UsingTool && !Game1.player.isEating && Game1.currentMinigame == null)
+                if ((Game1.activeClickableMenu == null || Game1.IsMultiplayer) && !Game1.paused && Game1.currentMinigame == null)
                 {
                     // Set activeClickableMenu to LogMenu, passing the dialogue list and config options
                     Game1.activeClickableMenu = new LogMenu(dialogueList, Config.StartFromBottom, Config.OldestToNewest);
@@ -205,7 +205,7 @@ namespace LogMenu
                 }
             }
 
-            // If event skipped, add skipped lines to dialogueList
+            // TODO: If event skipped, add skipped lines to dialogueList
             //if(Game1.currentLocation.currentEvent != null && !Game1.currentLocation.currentEvent.skipped && Game1.currentLocation.currentEvent.skippable)
             //{
             //    foreach(NPC n in Game1.currentLocation.currentEvent.actors)
@@ -219,8 +219,8 @@ namespace LogMenu
             //    this.Monitor.Log("END OF BUTTON PRESS LOG", LogLevel.Debug);
             //}
 
+            // TODO: Check response to an in-game dialogue question upon button click
             // uhh idk how to do this part lol so if anyone knows feel free to help 🙏
-            // Check response to an in-game dialogue question upon button click
             //if (Game1.activeClickableMenu is DialogueBox db)
             //{
             //    List<Response> responses = db.responses;
@@ -257,32 +257,39 @@ namespace LogMenu
 
         private void splitDialogue(Dialogue charDiag, int portraitIndex, string dialogue, int limit)
         {
-            List<string> brokenUpDialogue = new();
-            List<string> splitDialogue = dialogue.Split(Environment.NewLine).ToList();
-            int n = splitDialogue.Count - 1;
-            // Split up long dialogue lines with more than 4 lines
-            if (n > limit)
-            {
-                for(int i = 0; i < n; i += limit)
-                {
-                    int ind1 = dialogue.IndexOf(splitDialogue[i]);
-                    brokenUpDialogue.Add((((n - i) / limit) >= 1) ? dialogue.Substring(ind1, dialogue.IndexOf(splitDialogue[i + limit]) - ind1) : dialogue[ind1..]);
-                }
-                foreach (string s in brokenUpDialogue)
-                {
-                    dialogueList.enqueue(new DialogueElement(charDiag, Game1.mouseCursors, portraitIndex, s));
-                    Monitor.Log($"Added string to dialogue list: {s}");
+            // Skip empty dialogue
+            if (string.IsNullOrWhiteSpace(dialogue))
+                return;
 
+            // Split dialogue by lines
+            List<string> lines = dialogue.Split(new[] { Environment.NewLine }, StringSplitOptions.None).ToList();
+
+            // If we have more lines than the limit, break into chunks
+            if (lines.Count > limit)
+            {
+                // Process in chunks of 'limit' lines
+                for (int i = 0; i < lines.Count; i += limit)
+                {
+                    int remainingLines = lines.Count - i;
+                    int chunkSize = Math.Min(limit, remainingLines);
+
+                    // Break larger string into chunk
+                    string chunk = string.Join(Environment.NewLine, lines.GetRange(i, chunkSize));
+
+                    // Filter out whitespace string chunks (may be caused by trailing whitespace)
+                    if (!string.IsNullOrWhiteSpace(chunk))
+                    {
+                        // Add the chunk to the dialogue list
+                        dialogueList.enqueue(new DialogueElement(charDiag, Game1.mouseCursors, portraitIndex, chunk));
+                        Monitor.Log($"Added chunk to dialogue list: {chunk}");
+                    }
                 }
             }
             else
             {
-                DialogueElement dialogueElement = new(charDiag, Game1.mouseCursors, portraitIndex, dialogue);
-                if (dialogue != "")
-                {
-                    dialogueList.enqueue(dialogueElement);
-                    Monitor.Log($"Added string to dialogue list: {dialogue}");
-                }
+                // Add the entire dialogue if it's within the limit
+                dialogueList.enqueue(new DialogueElement(charDiag, Game1.mouseCursors, portraitIndex, dialogue));
+                Monitor.Log($"Added string to dialogue list: {dialogue}");
             }
         }
     }
